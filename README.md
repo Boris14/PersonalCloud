@@ -1,2 +1,2 @@
 # PersonalCloud
-Project for Web technologies course (Team 6)\n Team 6
+Project for Web technologies course<br> Team 6: Boris, Dzhem, Frosina and Viktor
