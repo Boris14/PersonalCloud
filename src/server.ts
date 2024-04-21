@@ -12,9 +12,9 @@ var storedFileNames : string[] = [];
 function getPageHtml() : string {
   return `
   <h2>Personal Cloud</h2>
-  <div>Stored files: ${storedFileNames.toString()}</div>
+  ${getStoredFilesHtml()}
   <form action="/upload" enctype="multipart/form-data" method="post">
-    <div>File: <input type="file" name="multipleFiles" multiple="multiple" /></div>
+    <div>Files to upload: <input id="uploadFiles" type="file" name="multipleFiles" multiple="multiple" /></div>
     <input type="submit" value="Upload" />
   </form>
   <form action="/download" method="post">
@@ -23,10 +23,22 @@ function getPageHtml() : string {
   `;
 }
 
+function getStoredFilesHtml() : string {
+  let result : string = "";
+  for(let i = 0; i < storedFileNames.length; ++i) {
+    result += 
+    `<form action="/remove?${i}" method="post">
+      <div>${storedFileNames[i]}</div>
+      <input type="submit" value="Remove" />
+    </form>\n`;
+  }
+  return result;
+}
+
 const server = createServer(async (req, res) => {  
   if (req.url === '/upload' && req.method.toLowerCase() === 'post') {
-    // parse a file upload
-    const form = formidable({});
+    // Parse a file upload
+    const form = formidable({allowEmptyFiles : true});
     let fields;
     let files;
     try {
@@ -61,6 +73,13 @@ const server = createServer(async (req, res) => {
         if(err) throw err;
       });
     }
+    res.end(getPageHtml());
+  }
+  else if(req.url.startsWith("/remove")){
+    let indexOfId : number = "/remove?".length;
+    let indexOfFileToRemove : number = Number(req.url.slice(indexOfId));
+    storedFileData.splice(indexOfFileToRemove, 1);
+    storedFileNames.splice(indexOfFileToRemove, 1);
     res.end(getPageHtml());
   }
   else {
