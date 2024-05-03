@@ -1,5 +1,5 @@
 import * as fs from 'fs';
-import { createServer } from 'node:http';
+import { createServer, Server } from 'node:http';
 import formidable from 'formidable';
 
 const dirPath: string = process.cwd();
@@ -27,7 +27,7 @@ function getStoredFilesHtml() : string {
   let result : string = "";
   for(let i = 0; i < storedFileNames.length; ++i) {
     result += 
-    `<form action="/remove?${i}" method="post">
+    `<form action="/remove/${i}" method="post">
       <div>${storedFileNames[i]}</div>
       <input type="submit" value="Remove" />
     </form>\n`;
@@ -35,12 +35,11 @@ function getStoredFilesHtml() : string {
   return result;
 }
 
-const server = createServer(async (req, res) => {  
+const server : Server = createServer(async (req, res) => {  
   if (req.url === '/upload' && req.method.toLowerCase() === 'post') {
     // Parse a file upload
-    const form = formidable({allowEmptyFiles : true});
-    let fields;
-    let files;
+    const form : formidable.Formidable = formidable({allowEmptyFiles : true, minFileSize : 0});
+    let fields, files;
     try {
         [fields, files] = await form.parse(req);
     } catch (err) {
@@ -50,25 +49,23 @@ const server = createServer(async (req, res) => {
         return;
     }
 
-    for(let i = 0; i < files.multipleFiles.length; ++i)
-    {
-      let file = files.multipleFiles[i];
-      var oldpath = file.filepath;
-      storedFileNames.push(file.originalFilename);
-      fs.readFile(file.filepath, function (err, data){
-        storedFileData.push(data);
-      });
-      fs.unlink(oldpath, (err) => {
-        if(err) throw err;
-      });
+    for(let i = 0; i < files.multipleFiles.length; ++i) {
+        let file : formidable.File = files.multipleFiles[i];
+        if(file.size <= 0) { continue; }
+        var oldpath : string = file.filepath;
+        storedFileNames.push(file.originalFilename);
+        fs.readFile(file.filepath, function (err, data){
+          storedFileData.push(data);
+        });
+        fs.unlink(oldpath, (err) => {
+          if(err) throw err;
+        });
     }
     res.end(getPageHtml());
   }
-  else if(req.url === "/download")
-  {
+  else if(req.url === "/download") {
     for(let i = 0; i < storedFileNames.length; ++i) {
-      let fileName = storedFileNames[i];
-      console.log(fileName);
+      let fileName : string = storedFileNames[i];
       fs.writeFile(dirPath + `\\${fileName}`, storedFileData[i], function (err){
         if(err) throw err;
       });
@@ -76,7 +73,7 @@ const server = createServer(async (req, res) => {
     res.end(getPageHtml());
   }
   else if(req.url.startsWith("/remove")){
-    let indexOfId : number = "/remove?".length;
+    let indexOfId : number = "/remove/".length;
     let indexOfFileToRemove : number = Number(req.url.slice(indexOfId));
     storedFileData.splice(indexOfFileToRemove, 1);
     storedFileNames.splice(indexOfFileToRemove, 1);
