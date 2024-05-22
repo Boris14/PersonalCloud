@@ -15,6 +15,7 @@
     "typescript": "^5.4.5"
   },
   "dependencies": {
+    "express": "^4.19.2",
     "formidable": "^3.5.1"
   }
 }
