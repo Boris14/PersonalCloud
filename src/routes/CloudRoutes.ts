@@ -5,7 +5,7 @@ const router = express.Router();
 
 router.post('/upload', CloudController.uploadFile);
 router.post('/download', CloudController.downloadFile);
-router.post('/remove', CloudController.removeFile);
-router.get('/', CloudController.defaultPage);
+router.post('/remove/:id', CloudController.removeFile);
+router.get('*', CloudController.defaultPage);
 
 export default router;
