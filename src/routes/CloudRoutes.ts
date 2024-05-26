@@ -4,7 +4,7 @@ import CloudController from '../controllers/CloudController.js';
 const router = express.Router();
 
 router.post('/upload', CloudController.uploadFile);
-router.post('/download', CloudController.downloadFile);
+router.post('/download', CloudController.downloadFiles);
 router.post('/remove/:id', CloudController.removeFile);
 router.get('*', CloudController.defaultPage);
 

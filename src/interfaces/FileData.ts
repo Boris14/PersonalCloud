@@ -1,5 +1,5 @@
 interface FileData {
-    id: number;
+    id: string;
     filename: string;
     filepath: string;
     data: Buffer;
