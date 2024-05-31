@@ -1,46 +1,53 @@
 import { Request, Response } from 'express';
-import FileData from '../interfaces/FileData.js';
 import CloudService from '../services/CloudService.js'
 
 class CloudController{
     static async uploadFile(req : Request, res: Response) : Promise<void> {
-      try{
-        const uploadedFiles = await CloudService.parseFilesToUpload(req);
-        if(uploadedFiles != null) {
-          CloudService.uploadFiles(uploadedFiles);
-        }
-        else {
-          res.status(400).json({ error: "No files uploaded" });
-        }
+      try {
+        await CloudService.uploadFiles(req);
       } catch (err) {
-        console.error("Error uploading file:", err);
-        res.status(500).json({error: "Internal server error"});
+        console.error(err);
+        res.status(500).json({error: "Upload Files Error"});
         return;
       }
-      if(!res.writableEnded) {
-        res.end(CloudService.getPageHtml());
-      }
+      res.redirect('/');
     }
 
-    static async downloadFiles(req: Request, res: Response) : Promise<void> {
+    static async downloadFile(req: Request, res: Response) : Promise<void> {
       try {
-        await CloudService.downloadFiles();
+        await CloudService.downloadFile(req);
       } catch(err) {
-        console.error("Error downloading file:", err);
-        res.status(400).json({error: "Couldn't download files"});
+        console.error(err);
+        res.status(400).json({error: "Download File Error"});
+        return;
       }
-      if(!res.writableEnded) {
-        res.end(CloudService.getPageHtml());
-      }
+      res.redirect('/');
     }
 
     static async removeFile(req: Request, res: Response) : Promise<void> {
-      const indexOfFileToRemove = Number(req.params.id);
-      CloudService.removeFile(indexOfFileToRemove);
-      res.end(CloudService.getPageHtml());
+      try {
+        CloudService.removeFile(req);
+      } catch(err) {
+        console.error(err);
+        res.status(500).json({error: "Remove File Error"});
+        return;
+      }
+      res.redirect('/');
+    }
+
+    static async downloadAllFiles(req: Request, res: Response) : Promise<void> {
+      try {
+        await CloudService.downloadAllFiles();
+      } catch(err) {
+        console.error(err);
+        res.status(400).json({error: "Download All Files Error"});
+        return;
+      }
+      res.redirect('/');
     }
 
     static async defaultPage(req: Request, res: Response) : Promise<void> {
+      CloudService.syncCloudFiles();
       res.end(CloudService.getPageHtml());
     }
 }

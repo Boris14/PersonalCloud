@@ -7,7 +7,7 @@ const hostname : string = '127.0.0.1';
 
 const app = express();
 
-CloudService.InitCloud(routes);
+CloudService.InitCloud();
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
