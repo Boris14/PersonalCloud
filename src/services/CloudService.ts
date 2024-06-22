@@ -41,6 +41,12 @@ class CloudService {
                 const fileData = fs.readFileSync(filePath);
                 const newFile : FileData = {
                     id: fileId, 
+                    // TODO: Replace placeholder values with actual values
+                    owner_id: "",
+                    parent_id: null,
+                    is_folder: false,
+                    size: 1,
+                    //
                     filename: file, 
                     filepath: filePath, 
                 };
@@ -65,7 +71,13 @@ class CloudService {
             if(file.size <= 0) { continue; }
 
             const newFileData : FileData = {
-                id: this.getFileHash(file.originalFilename), 
+                id: this.getFileHash(file.originalFilename),
+                // TODO: Replace placeholder values with actual values
+                owner_id: "",
+                parent_id: null,
+                is_folder: false,
+                size: 1,
+                //
                 filename: file.originalFilename, 
                 filepath: path.join(cloudDirpath, file.originalFilename), 
             };
