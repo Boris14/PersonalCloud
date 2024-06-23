@@ -15,9 +15,9 @@ const sequelize = new Sequelize({
     logging: console.log,
 });
 
-const User = require('./models/User');
-const File = require('./models/File');
-const SharedWith = require('./models/SharedWith');
+//const User = require('./models/User');
+//const File = require('./models/File');
+//const SharedWith = require('./models/SharedWith');
 
 sequelize.sync()
     .then(() => {

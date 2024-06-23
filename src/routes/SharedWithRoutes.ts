@@ -6,4 +6,4 @@ const router = express.Router();
 router.post('/shared', SharedWithController.share);
 router.delete('/shared/:shareId', SharedWithController.stopSharing);
 
-module.exports = router;
+export default router;

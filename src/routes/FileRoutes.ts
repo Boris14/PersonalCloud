@@ -10,4 +10,4 @@ router.put('/files/move/:fileId', FileController.moveFile);
 router.put('/files/rename/:fileId', FileController.renameFile);
 router.delete('/files/:fileId', FileController.deleteFile);
 
-module.exports = router;
+export default router;

@@ -10,6 +10,12 @@ class SharedWith extends Model {
     public shared_at!: Date;
 }
 
+export const PermissionLevels = {
+    INVALID: 0,
+    READ: 1,
+    READ_WRITE: 2,
+};
+
 SharedWith.init(
     {
         id: {
@@ -36,6 +42,9 @@ SharedWith.init(
         permission_level: {
             type: DataTypes.INTEGER,
             allowNull: false,
+            validate: {
+                isIn: [[PermissionLevels.INVALID, PermissionLevels.READ, PermissionLevels.READ_WRITE]],
+            },
         },
         shared_at: {
             type: DataTypes.DATE,
