@@ -3,6 +3,7 @@ import '../styles/authform.css'
 import { FiKey, FiLock, FiMail, FiUser } from "react-icons/fi";
 
 import { Button } from "antd";
+import React from "react";
 
 export interface RegistrationData {
     firstName: string;
