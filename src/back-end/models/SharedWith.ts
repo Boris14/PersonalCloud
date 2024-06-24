@@ -1,6 +1,6 @@
 import { DataTypes, Model } from 'sequelize';
 import { v4 as generateUUIDv4 } from 'uuid';
-import { sequelize } from '../database.js';
+import { sequelize } from '../../database.js';
 
 class SharedWith extends Model {
     public id!: string;

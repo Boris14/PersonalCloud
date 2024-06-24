@@ -1,0 +1,43 @@
+.navbar {
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+  background-color: #f0f0f0;
+}
+
+.navbar-list {
+  list-style-type: none;
+  margin: auto;
+  margin-left: -1.25em;
+  padding: auto;
+}
+
+.logged-in {
+  background-color: #f0f0f0; 
+}
+
+li {
+  float: left;
+}
+
+li a {
+  list-style-type: none;
+  display: block;
+  color: black;
+  text-align: center;
+  margin: 0.5em;
+  padding: 0.875em 1em;
+  text-decoration: none;
+}
+
+.navbar-item:hover {
+  background-color: rgb(221, 220, 220);
+}
+
+.navbar-btn {
+  color: #333;
+  border: none;
+  cursor: pointer;
+  margin: 1em;
+  padding: 0;
+}

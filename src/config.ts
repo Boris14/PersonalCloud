@@ -1,8 +1,8 @@
 export const databaseConfig = {
-    username: 'personal_cloud_user',
-    password: 'password',
-    database: 'personal_cloud_db',
-    port: 8000,
+    username: 'testuser',
+    password: 'mulacka17',
+    database: 'PersonalCloud',
+    port: 5432,
     host: 'localhost',
     dialect: 'postgres',
 };

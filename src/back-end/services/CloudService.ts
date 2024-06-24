@@ -4,6 +4,7 @@ import FileData from '../interfaces/FileData.js'
 import { Request } from 'express';
 import path from 'path';
 import * as fs from 'fs';
+import Formidable from 'formidable/Formidable.js';
 
 const scriptDirpath: string = process.cwd();
 const cloudDirname: string = 'Cloud';
@@ -30,9 +31,14 @@ class CloudService {
     }
 
     static syncCloudFiles() : void {
-        cloudFiles = cloudFiles.filter(file => fs.existsSync(file.filepath));
+        cloudFiles = cloudFiles.filter(file => {
+            if (file.filepath) {
+              return fs.existsSync(file.filepath);
+            }
+            return false;
+          });
 
-        try{
+        try {
             const files : string[] = fs.readdirSync(cloudDirpath);
             files.forEach(file => {
                 const fileId = this.getFileHash(file);
@@ -58,7 +64,7 @@ class CloudService {
     }
 
     static async uploadFiles(req: Request) : Promise<void> {
-        const form : formidable.Formidable = formidable({allowEmptyFiles : true, minFileSize : 0});
+        const form : Formidable = formidable({allowEmptyFiles : true, minFileSize : 0});
         let files, fields;
         try {
             [fields, files] = await form.parse(req);
@@ -67,66 +73,82 @@ class CloudService {
             return;
         }
 
+        if(files.multipleFiles) {
         for(const file of files.multipleFiles) {
             if(file.size <= 0) { continue; }
 
-            const newFileData : FileData = {
-                id: this.getFileHash(file.originalFilename),
-                // TODO: Replace placeholder values with actual values
-                owner_id: "",
-                parent_id: null,
-                is_folder: false,
-                size: 1,
-                //
-                filename: file.originalFilename, 
-                filepath: path.join(cloudDirpath, file.originalFilename), 
-            };
-
-            if(newFileData.filename == '') { continue; }
-            if(this.isFileRegistered(newFileData.id)) { continue; }
-
-            // Write the File in the Cloud
-            try {
-                let data : Buffer = await fs.promises.readFile(file.filepath);
-                await fs.promises.writeFile(newFileData.filepath, data);
-            } catch(err) {
-                console.error(err);
-                continue;
+            let newFileData : FileData;
+            if(file.originalFilename) {
+                newFileData  = {
+                    id: this.getFileHash(file.originalFilename),
+                    // TODO: Replace placeholder values with actual values
+                    owner_id: "",
+                    parent_id: null,
+                    is_folder: false,
+                    size: 1,
+                    // 
+                    filename: file.originalFilename, 
+                    filepath: path.join(cloudDirpath, file.originalFilename), 
+                };
+                if(newFileData.filename == '') { continue; }
+                if(newFileData.id && this.isFileRegistered(newFileData.id)) { continue; }
+                // Write the File in the Cloud
+                if(newFileData.filepath) {
+                    try {
+                        let data : Buffer = await fs.promises.readFile(file.filepath);
+                        await fs.promises.writeFile(newFileData.filepath, data);
+                    } catch(err) {
+                        console.error(err);
+                        continue;
+                    }
+                }
+                cloudFiles.push(newFileData);
             }
             
-            cloudFiles.push(newFileData);
+        }
         }
     }
 
     static async downloadFile(req: Request) : Promise<void> {
         const fileIndex = Number(req.params.id);
-        const file : FileData = cloudFiles.at(fileIndex);
-        try {
-            let fileData : Buffer = await fs.promises.readFile(file.filepath);
-            await fs.promises.writeFile(path.join(scriptDirpath, file.filename), fileData) 
-        } catch(err) {
-            console.error(`Couldn't download ${file.filename}. `, err);
+        const file : FileData | undefined = cloudFiles.at(fileIndex);
+        if(file && file.filepath) {
+            try {
+                let fileData : Buffer = await fs.promises.readFile(file.filepath);
+                await fs.promises.writeFile(path.join(scriptDirpath, file.filename), fileData) 
+            } catch(err) {
+                console.error(`Couldn't download ${file.filename}. `, err);
+            }
         }
     }
 
     static async removeFile(req: Request) : Promise<void> {
         const fileIndex = Number(req.params.id);
-        const file : FileData = cloudFiles.at(fileIndex);
-        await fs.promises.rm(file.filepath).then(() =>{
-            cloudFiles.splice(fileIndex, 1);
-        }, (err) => {
-            console.error(`Couldn't remove ${file.filename}. `, err);
-        })
+        const file : FileData | undefined = cloudFiles.at(fileIndex);
+        if(file && file.filepath) {
+            await fs.promises.rm(file.filepath).then(() =>{
+                cloudFiles.splice(fileIndex, 1);
+            }, (err) => {
+                console.error(`Couldn't remove ${file.filename}. `, err);
+            })
+        }
     }
 
     static async downloadAllFiles() : Promise<void> {
         for(const file of cloudFiles) {
-            try {
-                let fileData : Buffer = await fs.promises.readFile(file.filepath);
-                await fs.promises.writeFile(path.join(scriptDirpath, file.filename), fileData) 
-            } catch(err) {
-                console.error("Download All Files Error. ", err);
-            }
+            if(file.filepath) {
+                try {
+                    let fileData: Buffer;
+                    try {
+                        fileData = await fs.promises.readFile(file.filepath);
+                        await fs.promises.writeFile(path.join(scriptDirpath, file.filename), fileData) 
+                      } catch (error) {
+                        console.error('Error reading file:', error);
+                } 
+                } catch(err) {
+                    console.error("Download All Files Error. ", err);
+                }
+         }
         }
     }
 

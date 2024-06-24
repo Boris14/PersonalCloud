@@ -1,5 +1,6 @@
 import User from '../models/User.js';
 import UserData from '../interfaces/UserData.js'
+import bcrypt from "bcrypt";
 
 class UserService {
     static async createUser(userData: UserData): Promise<User | null> {
@@ -48,6 +49,52 @@ class UserService {
         } catch (error) {
             console.error('Error deleting user:', error);
             return false;
+        }
+    }
+
+    static async registerUser(userData: UserData) {
+        try {
+            const { username, email, password } = userData;
+
+            const existingUser = await User.findOne({ where: { email } });
+            if (existingUser) {
+                console.log("exisxts");
+                throw new Error('User already exists');
+            }
+
+            const hashedPassword = bcrypt.hashSync(password, 10);
+
+            const newUser = await User.create({
+                username,
+                email,
+                password: hashedPassword,
+                created_at: new Date(),
+            });
+
+            return newUser;
+        } catch (error) {
+            console.log("some error");
+            console.error('Error occured while trying to register', error);
+            return null;
+        }
+    }
+
+    static async loginUser(email: string, password: string) {
+        try {
+            const user = await User.findOne({ where: { email } });
+            if (!user) {
+                throw new Error('User not found');
+            }
+
+            const isPasswordValid = bcrypt.compareSync(password, user.password);
+            if (!isPasswordValid) {
+                throw new Error('Invalid email or password');
+            }
+
+            return user;
+        } catch (error) {
+            console.error('Error occured while trying to login', error);
+            return null;
         }
     }
 };
