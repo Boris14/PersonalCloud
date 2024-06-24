@@ -43,11 +43,11 @@ const LoginForm: React.FC<LoginFormProps> = ({ onLogin }) => {
       <form onSubmit={handleSubmit}>
         <div className="auth-form-input-group">
           <FiMail className="auth-form-icon" />
-          <input type="email" placeholder="Email" value={email} onChange={(e) => setEmail(e.target.value)} className="auth-form-input" required />
+          <input type="email" placeholder="Email" value={email} onChange={(e: { target: { value: any; }; }) => setEmail(e.target.value)} className="auth-form-input" required />
         </div>
         <div className="auth-form-input-group">
           <FiLock className="auth-form-icon" />
-          <input type="password" placeholder="Password" value={password} onChange={(e) => setPassword(e.target.value)} className="auth-form-input" required />
+          <input type="password" placeholder="Password" value={password} onChange={(e: { target: { value: any; }; }) => setPassword(e.target.value)} className="auth-form-input" required />
         </div>
         <div className="auth-form-submit">
           <Button type="primary" onClick={handleSubmit}>Sign In</Button>

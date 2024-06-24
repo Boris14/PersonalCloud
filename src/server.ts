@@ -1,12 +1,12 @@
 import express from 'express';
 //import { sequelize } from './database.js';
-import routes from './routes/CloudRoutes.js';
-import CloudService from './services/CloudService.js';
-import userRoutes from './routes/UserRoutes.js';
-import fileRoutes from './routes/FileRoutes.js';
-import sharedWithRoutes from './routes/SharedWithRoutes.js';
+import routes from './back-end/routes/CloudRoutes.js';
+import CloudService from './back-end/services/CloudService.js';
+import userRoutes from './back-end/routes/UserRoutes.js';
+import fileRoutes from './back-end/routes/FileRoutes.js';
+import sharedWithRoutes from './back-end/routes/SharedWithRoutes.js';
 
-const port : number = 3000;
+const port : number = 3001;
 const hostname : string = '127.0.0.1';
 
 const app = express();

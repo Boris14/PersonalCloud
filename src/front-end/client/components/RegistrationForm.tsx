@@ -4,22 +4,25 @@ import { FiKey, FiLock, FiMail, FiUser } from "react-icons/fi";
 
 import { Button } from "antd";
 import React from "react";
+import UserData from "../../../back-end/interfaces/UserData";
 
 export interface RegistrationData {
     firstName: string;
     lastName: string;
+    username: string;
     email: string;
     password: string;
     confirmPassword: string
 }
 
 interface RegistrationFormProps {
-    onRegister: (registrationData: RegistrationData) => Promise<boolean>;
+    onRegister: (userData : UserData) => Promise<boolean>;
 }
 
 const RegistrationForm: React.FC<RegistrationFormProps> = ({ onRegister }) => {
     const [firstName, setFirstName] = useState('');
     const [lastName, setLastName] = useState('');
+    const [username, setUsername] = useState('');
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [confirmPassword, setConfirmPassword] = useState('');
@@ -60,9 +63,17 @@ const RegistrationForm: React.FC<RegistrationFormProps> = ({ onRegister }) => {
             setError('Passwords do not match!');
             return;
         }
-        const registerSuccess = await onRegister({ firstName, lastName, email, password, confirmPassword });
-        if (!registerSuccess) {
-            setError('A user with that email already exists!');
+        try {
+            const registerSuccess = await onRegister({ username, email, password });
+
+            if (!registerSuccess) {
+                setError('A user with that email already exists!');
+            } else {
+                console.log('Registration successful!');
+            }
+        } catch (error) {
+            setError('Failed to register user. Please try again later.');
+            console.error('Error occurred during registration:', error);
         }
     };
 
@@ -82,6 +93,10 @@ const RegistrationForm: React.FC<RegistrationFormProps> = ({ onRegister }) => {
                 <div className="auth-form-input-group">
                     <FiUser className="auth-form-icon" />
                     <input type="text" placeholder="Last Name" value={lastName} onChange={(e) => setLastName(e.target.value)} className="auth-form-input" required />
+                </div>
+                <div className="auth-form-input-group">
+                    <FiUser className="auth-form-icon" />
+                    <input type="text" placeholder="Username" value={username} onChange={(e) => setUsername(e.target.value)} className="auth-form-input" required />
                 </div>
                 <div className="auth-form-input-group">
                     <FiMail className="auth-form-icon" />
