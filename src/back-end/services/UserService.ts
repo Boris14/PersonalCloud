@@ -25,6 +25,16 @@ class UserService {
         }
     }
 
+    static async getUserByEmail(email: string): Promise<User | null> {
+        try {
+            return await User.findOne({ where: { email } });
+        }
+        catch (error) {
+            console.error('Error getting user:', error);
+            return null;
+        }
+    }
+
     static async updateUser(userId: string, newData: UserData): Promise<User | null> {
         try {
             const user = await User.findByPk(userId);
