@@ -1,7 +1,11 @@
 import { Request, Response, request } from 'express';
 import UserService from '../services/UserService.js';
+import UserData from '../interfaces/UserData.js';
+import User from '../models/User.js';
 
 class UserController {
+    static currentUser : User;
+
     static async createUser(req: Request, res: Response) {
         try {
             const requestBody = req.body;
@@ -85,6 +89,7 @@ class UserController {
             const { email, password } = req.body;
             const user = await UserService.loginUser(email, password);
             if (user != null) {
+                UserController.currentUser = user;
                 res.status(200).json(user);
             } else {
                 res.status(401).json({ message: 'Invalid email or password' });

@@ -5,12 +5,15 @@ import { Request } from 'express';
 import path from 'path';
 import * as fs from 'fs';
 import Formidable from 'formidable/Formidable.js';
+import File from '../models/File.js';
+import FileService from './FileService.js';
+import UserController from '../controllers/UserController.js';
 
 const scriptDirpath: string = process.cwd();
 const cloudDirname: string = 'Cloud';
 const cloudDirpath : string = path.join(scriptDirpath, cloudDirname);
 
-var cloudFiles : FileData[] = [];
+var cloudFiles : FileData[] = []; // TODO: Remove
 
 class CloudService {
 
@@ -73,25 +76,37 @@ class CloudService {
             return;
         }
 
+        if(!UserController.currentUser) {
+            console.error(`Current user is undefined`);
+            return;
+        }
+        const userId : string = UserController.currentUser.dataValues.id;
+
         if(files.multipleFiles) {
         for(const file of files.multipleFiles) {
             if(file.size <= 0) { continue; }
-
             let newFileData : FileData;
             if(file.originalFilename) {
                 newFileData  = {
                     id: this.getFileHash(file.originalFilename),
-                    // TODO: Replace placeholder values with actual values
-                    owner_id: "",
-                    parent_id: null,
-                    is_folder: false,
-                    size: 1,
-                    // 
+                    owner_id: userId,
+                    parent_id: null, // TODO: Get it from the Frontend (current folder)
+                    is_folder: false, // TODO: Handle Folder creation
+                    size: fs.statSync(file.filepath).size,
                     filename: file.originalFilename, 
-                    filepath: path.join(cloudDirpath, file.originalFilename), 
+                    filepath: path.join(cloudDirpath, file.originalFilename), // TODO: Maybe remove (not needed)
                 };
                 if(newFileData.filename == '') { continue; }
                 if(newFileData.id && this.isFileRegistered(newFileData.id)) { continue; }
+
+                try{
+                    await FileService.createFile(newFileData);
+                }
+                catch(err) {
+                    console.error(err);
+                    continue;
+                }
+
                 // Write the File in the Cloud
                 if(newFileData.filepath) {
                     try {
@@ -125,7 +140,11 @@ class CloudService {
     static async removeFile(req: Request) : Promise<void> {
         const fileIndex = Number(req.params.id);
         const file : FileData | undefined = cloudFiles.at(fileIndex);
-        if(file && file.filepath) {
+        if(file && file.filepath && file.id != undefined) {
+
+            // Make this work:
+            //FileService.deleteFile(file.id);
+
             await fs.promises.rm(file.filepath).then(() =>{
                 cloudFiles.splice(fileIndex, 1);
             }, (err) => {
@@ -149,6 +168,22 @@ class CloudService {
                     console.error("Download All Files Error. ", err);
                 }
          }
+        }
+    }
+
+    static async renameFile(req: Request) : Promise<void> {
+        const fileIndex = Number(req.params.id);
+        const file : FileData | undefined = cloudFiles.at(fileIndex);
+        if(file && file.filepath && file.id != undefined) {
+
+            // Make this work:
+            //FileService.deleteFile(file.id);
+
+            await fs.promises.rm(file.filepath).then(() =>{
+                cloudFiles.splice(fileIndex, 1);
+            }, (err) => {
+                console.error(`Couldn't remove ${file.filename}. `, err);
+            })
         }
     }
 
