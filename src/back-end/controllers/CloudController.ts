@@ -1,38 +1,42 @@
 import { Request, Response } from 'express';
 import CloudService from '../services/CloudService.js'
+import formidable from 'formidable';
 
 class CloudController{
-    static async uploadFile(req : Request, res: Response) : Promise<void> {
+    static async uploadFiles(req : Request, res: Response) : Promise<void> {
       try {
-        await CloudService.uploadFiles(req);
+        const form = formidable({allowEmptyFiles : true, minFileSize : 0});
+        let files, fields;
+        [fields, files] = await form.parse(req);
+    
+        if(files.multipleFiles) {
+          await CloudService.uploadFiles(files.multipleFiles);
+        }
+        else {
+          res.status(500).json({error: "Upload Files Error"});
+          return;
+        }
       } catch (err) {
         console.error(err);
         res.status(500).json({error: "Upload Files Error"});
         return;
       }
       res.redirect('/');
+      res.status(200);
     }
 
     static async downloadFile(req: Request, res: Response) : Promise<void> {
       try {
-        await CloudService.downloadFile(req);
+        // Passed fileId isn't valid at the moment
+        const fileId = req.params.fileId;
+        await CloudService.downloadFile(fileId);
       } catch(err) {
         console.error(err);
-        res.status(400).json({error: "Download File Error"});
+        res.status(500).json({error: "Download File Error"});
         return;
       }
       res.redirect('/');
-    }
-
-    static async removeFile(req: Request, res: Response) : Promise<void> {
-      try {
-        CloudService.removeFile(req);
-      } catch(err) {
-        console.error(err);
-        res.status(500).json({error: "Remove File Error"});
-        return;
-      }
-      res.redirect('/');
+      res.status(200);
     }
 
     static async downloadAllFiles(req: Request, res: Response) : Promise<void> {

@@ -1,10 +1,9 @@
 import formidable from 'formidable';
-import crypto from 'crypto';
 import FileData from '../interfaces/FileData.js'
+import File from '../models/File.js';
 import { Request } from 'express';
 import path from 'path';
 import * as fs from 'fs';
-import Formidable from 'formidable/Formidable.js';
 import FileService from './FileService.js';
 import UserController from '../controllers/UserController.js';
 
@@ -80,120 +79,102 @@ class CloudService {
         }
     }
 
-    static async uploadFiles(req: Request) : Promise<void> {
-        const form : Formidable = formidable({allowEmptyFiles : true, minFileSize : 0});
-        let files, fields;
-        try {
-            [fields, files] = await form.parse(req);
-        } catch(err) {
-            console.error(err);
-            return;
-        }
-
+    static async uploadFiles(files: formidable.File[]) : Promise<void> {
         if(!UserController.currentUser) {
             throw new Error("Current user is undefined");
         }
-
-        if(files.multipleFiles) {
-            for(const file of files.multipleFiles) {
-                if(file.size <= 0) { continue; }
-                let newFileData : FileData;
-                if(file.originalFilename) {
-                    newFileData  = {
-                        id: this.getFileHash(file.originalFilename),
-                        owner_id: UserController.currentUser.id,
-                        parent_id: null, // TODO: Get it from the Frontend (current folder)
-                        is_folder: false, // TODO: Handle Folder creation
-                        size: fs.statSync(file.filepath).size,
-                        filename: file.originalFilename, 
-                        filepath: path.join(cloudDirpath, file.originalFilename), // TODO: Maybe remove (not needed)
-                    };
-                    if(newFileData.filename == '' || this.isFileRegistered(newFileData.filename)) { continue; }
-
-                    try{
-                        const newFile = await FileService.createFile(newFileData);
-                        if(!newFile) {
-                            throw new Error("Couldn't create new File in the Cloud");
-                        }
-                        newFileData.id = newFile.id;
+        if(!files) {
+            throw new Error("Files to upload are invalid");
+        }
+        
+        for(const file of files) {
+            if(file.size <= 0) { continue; }
+            let newFileData : FileData;
+            if(file.originalFilename) {
+                newFileData  = {
+                    id: "",
+                    owner_id: UserController.currentUser.id,
+                    parent_id: null, // TODO: Get it from the Frontend (current folder)
+                    is_folder: false, // TODO: Handle Folder creation
+                    size: fs.statSync(file.filepath).size,
+                    filename: file.originalFilename, 
+                    filepath: path.join(cloudDirpath, file.originalFilename), // TODO: Maybe remove (not needed)
+                };
+                if(newFileData.filename == '' || this.isFileRegistered(newFileData.filename)) { continue; }
+                try{
+                    const newFile = await FileService.createFile(newFileData);
+                    if(!newFile) {
+                        throw new Error("Couldn't create new File in the Cloud");
                     }
-                    catch(err) {
+                    newFileData.id = newFile.id;
+                }
+                catch(err) {
+                    console.error(err);
+                    continue;
+                }
+
+                // Write the File in the Cloud
+                if(newFileData.filepath) {
+                    try {
+                        let data : Buffer = await fs.promises.readFile(file.filepath);
+                        await fs.promises.writeFile(newFileData.filepath, data);
+                    } catch(err) {
                         console.error(err);
                         continue;
                     }
-
-                    // Write the File in the Cloud
-                    if(newFileData.filepath) {
-                        try {
-                            let data : Buffer = await fs.promises.readFile(file.filepath);
-                            await fs.promises.writeFile(newFileData.filepath, data);
-                        } catch(err) {
-                            console.error(err);
-                            continue;
-                        }
-                    }
-                    cloudFiles.push(newFileData);
                 }
-                
-            }
+                cloudFiles.push(newFileData);
+            } 
         }
     }
 
-    static async downloadFile(req: Request) : Promise<void> {
-        const fileIndex = Number(req.params.id);
-        const file : FileData | undefined = cloudFiles.at(fileIndex);
-        if(file && file.filepath) {
-            try {
-                let fileData : Buffer = await fs.promises.readFile(file.filepath);
-                await fs.promises.writeFile(path.join(scriptDirpath, file.filename), fileData) 
-            } catch(err) {
-                console.error(`Couldn't download ${file.filename}. `, err);
+    static async downloadFile(fileId: string) : Promise<void> {
+        try {
+            const file = await CloudService.getCloudFileById(fileId);
+            if(file) {
+                let fileData : Buffer = await fs.promises.readFile(CloudService.getCloudFilepath(file.filename));
+                await fs.promises.writeFile(path.join(scriptDirpath, file.filename), fileData);
             }
-        }
-    }
-
-    static async removeFile(req: Request) : Promise<void> {
-        const fileIndex = Number(req.params.id);
-        const file : FileData | undefined = cloudFiles.at(fileIndex);
-        if(file && file.filepath && file.id != undefined) {
-            try{
-                await FileService.deleteFile(file.id);
+            else {
+                console.error("Invalid File ID");
             }
-            catch(err) {
-                console.error(`Couldn't delete ${file.filename} from Database. `, err);
-                return;
-            }
-
-            await fs.promises.rm(file.filepath).then(() =>{
-                cloudFiles.splice(fileIndex, 1);
-            }, (err) => {
-                console.error(`Couldn't remove ${file.filename}. `, err);
-            })
+        } catch(err) {
+            console.error(err);
         }
     }
 
     static async downloadAllFiles() : Promise<void> {
-        for(const file of cloudFiles) {
-            if(file.filepath) {
-                try {
-                    let fileData: Buffer;
-                    try {
-                        fileData = await fs.promises.readFile(file.filepath);
-                        await fs.promises.writeFile(path.join(scriptDirpath, file.filename), fileData) 
-                      } catch (error) {
-                        console.error('Error reading file:', error);
-                } 
-                } catch(err) {
-                    console.error("Download All Files Error. ", err);
-                }
-         }
+        const filenames : string[] = fs.readdirSync(cloudDirpath);
+        for(const filename of filenames) {
+            const filepath = CloudService.getCloudFilepath(filename);
+            try{
+                const fileData = await fs.promises.readFile(filepath);
+                await fs.promises.writeFile(path.join(scriptDirpath, filename), fileData);
+            } catch(err)
+            {
+                console.error(err);
+            }
         }
     }
 
-    static getFileHash(filename: string) : string {
-        const hash = crypto.createHash('sha256');
-        hash.update(filename);
-        return hash.digest('hex');
+    static async getCloudFileById(fileId: string) : Promise<File | null> {
+        const filenames : string[] = fs.readdirSync(cloudDirpath);
+        for(const filename of filenames) {
+            try{
+                const file = await FileService.getFileById(fileId);
+                if(file && file.filename == filename) {
+                    return file;
+                }
+            } catch(err)
+            {
+                console.error(err);
+            }
+        }
+        return null;
+    }
+
+    static getCloudFilepath(filename: string) : string {
+        return path.join(cloudDirpath, filename);
     }
 
     static isFileRegistered(filename : string) : boolean {
@@ -210,7 +191,7 @@ class CloudService {
         return `
         <h2>Personal Cloud ${userText}</h2>
         ${this.getCloudFilesHtml()}
-        <form action="/files/upload" enctype="multipart/form-data" method="post">
+        <form action="/files" enctype="multipart/form-data" method="post">
           <div>Files to upload: <input id="uploadFiles" type="file" name="multipleFiles" multiple="multiple" /></div>
           <input type="submit" value="Upload" />
         </form>
