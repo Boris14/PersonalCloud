@@ -1,6 +1,7 @@
 import User from '../models/User.js';
 import UserData from '../interfaces/UserData.js'
 import bcrypt from "bcrypt";
+import JwtService from './JwtService.js';
 
 class UserService {
     static async createUser(userData: UserData): Promise<User | null> {
@@ -70,8 +71,9 @@ class UserService {
                 password: hashedPassword,
                 created_at: new Date(),
             });
-
-            return newUser;
+            
+            const token = JwtService.generateToken(newUser);
+            return {user: newUser, token: token};
         } catch (error) {
             console.log("some error");
             console.error('Error occured while trying to register', error);
@@ -91,7 +93,8 @@ class UserService {
                 throw new Error('Invalid email or password');
             }
 
-            return user;
+            const token = JwtService.generateToken(user);
+            return {user: user, token: token};
         } catch (error) {
             console.error('Error occured while trying to login', error);
             return null;

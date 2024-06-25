@@ -10,7 +10,7 @@ const Dashboard: React.FC<DashboardProps> = ({ username }) => {
     <div className="dashboard-container">
       <h1 className="dashboard-title">
         Welcome
-        {username ? `, ${username}!` : ', back!'}
+        {`, ${username}!`}
       </h1>
       <p className="dashboard-description">
         {username ? `You can now store, share, and collaborate on files and folders!` : 'Start exploring your files and folders!'}

@@ -6,17 +6,18 @@ import Home from './front-end/client/components/Home';
 import Dashboard from './front-end/client/components/Dashboard';
 import YourFiles from './front-end/client/components/YourFiles';
 import SharedWithMe from './front-end/client/components/SharedWithMe';
-import RegistrationForm, { RegistrationData } from './front-end/client/components/RegistrationForm';
+import RegistrationForm from './front-end/client/components/RegistrationForm';
 import UserData from './back-end/interfaces/UserData';
+import User from './back-end/models/User';
 
 
 const App: React.FC = () => {
   const [loggedIn, setLoggedIn] = useState(false);
-  const [userData, setUserInfo] = useState<UserData | null>(null);
+  const [userData, setUserInfo] = useState<User | null>(null);
 
   const handleLogin = async (loginData: LoginData) => {
     try {
-      const response = await fetch('http://localhost:3000/api/users/login', {
+      const response = await fetch('http://localhost:3001/api/users/login', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -24,13 +25,15 @@ const App: React.FC = () => {
         body: JSON.stringify(loginData),
       });
       if (response.ok) {
-        const user = await response.json();
+        const { user, token } = await response.json();
+        console.log(' User:', user);
+        localStorage.setItem('jwtToken', token);
         setLoggedIn(true);
         setUserInfo(user);
         return true;
       } else if (response.status === 404) {
         console.error('User not found');
-      } else if (response.status === 403) {
+      } else if (response.status === 401) {
         console.error('Invalid email or password');
       }
     } catch (error) {
@@ -39,17 +42,19 @@ const App: React.FC = () => {
     return false;
   };
 
-  const handleRegister = async (userData : UserData) => {
+  const handleRegister = async (userData: UserData) => {
     try {
-      const response = await fetch('http://localhost:3000/api/users/register', {
+      const response = await fetch('http://localhost:3001/api/users/register', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify(userData),
       });
-      if (response.ok) {
-        const user = await response.json();
+      if (response.ok) {;
+        const { user, token } = await response.json();
+        console.log('Registered User:', user);
+        localStorage.setItem('jwtToken', token);
         setLoggedIn(true);
         setUserInfo(user);
         return true;

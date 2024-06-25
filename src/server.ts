@@ -5,12 +5,14 @@ import CloudService from './back-end/services/CloudService.js';
 import userRoutes from './back-end/routes/UserRoutes.js';
 import fileRoutes from './back-end/routes/FileRoutes.js';
 import sharedWithRoutes from './back-end/routes/SharedWithRoutes.js';
+import cors from 'cors';
 
 const port : number = 3001;
 const hostname : string = '127.0.0.1';
 
 const app = express();
 
+app.use(cors());
 
 app.use(express.json());
 
