@@ -39,7 +39,16 @@ class FileService {
         try {
             return await File.findByPk(fileId);
         } catch (error) {
-            console.error('Error getting user:', error);
+            console.error('Error getting file:', error);
+            return null;
+        }
+    }
+
+    static async getFileByName(filename: string): Promise<File | null> {
+        try {
+            return await File.findOne({where: {filename}});
+        } catch (error) {
+            console.error('Error getting file:', error);
             return null;
         }
     }

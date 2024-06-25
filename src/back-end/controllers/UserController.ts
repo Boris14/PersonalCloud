@@ -74,6 +74,7 @@ class UserController {
             const requestBody = req.body;
             const newUser = await UserService.registerUser(requestBody);
             if (newUser != null) {
+                UserController.currentUser = newUser;
                 res.status(201).json(newUser);
             } else {
                 res.status(409).json({ message: 'User already exists' });
