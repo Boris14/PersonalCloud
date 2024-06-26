@@ -43,6 +43,17 @@ class FileService {
         }
     }
 
+    static async getFilesByOwnerIdAndParentId(ownerId: string, parentId: string | null): Promise<File[] | null>
+    {
+        try {
+            const files = await File.findAll({ where: { owner_id: ownerId, parent_id: parentId }});
+            return files;
+        } catch (error) {
+            console.error('Error getting files by owner and parent ID:', error);
+            return null;
+        }
+    }
+
     static async getFileByName(filename: string): Promise<File | null> {
         try {
             return await File.findOne({where: {filename}});
