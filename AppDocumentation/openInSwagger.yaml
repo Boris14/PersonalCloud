@@ -1,0 +1,394 @@
+openapi: 3.1.0
+info:
+  version: 1.0.0
+  title: Personal Cloud
+  description: |-
+    A basic implementation of a Cloud Service
+
+    By Team 6: *Boris*, *Frosina*, *Dzhem* and *Victor*
+
+    ### Check out its awesome features:
+    * Upload and Download your files easily
+    
+    * Share your files with other users
+
+    * Create folders to organise files
+
+tags:
+  - name: cloud
+    description: Operations on the Cloud
+  - name: user
+    description: Operations about user
+paths:
+  /cloud/upload:
+    post:
+      tags:
+        - cloud
+      summary: Upload files to the Cloud
+      operationId: uploadFiles
+      requestBody:
+        content: 
+          application/json:
+            schema:
+              $ref: '#/components/schemas/FileData'
+      responses:
+        '200':
+          description: Succesful operation
+        '500':
+          description: Internal server error
+  /cloud/download:
+    get:
+      tags:
+        - cloud
+      summary: Download all Files from the Cloud as an archive
+      operationId: downloadAllFiles
+      responses:
+        '200':
+          description: Succesful operation
+        '500':
+          description: Internal server error
+  /cloud/download/{fileId}:
+    get:
+      tags:
+        - cloud
+      summary: Download a single File from the Cloud
+      operationId: downloadFile
+      parameters:
+        - name: fileId
+          in: path
+          description: ID of the File
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Successful operation
+        '404':
+          description: File not found
+        '500':
+          description: Internal server error
+  /cloud/folder:
+    post:
+      tags:
+        - cloud
+      summary: Create a Folder inside the Cloud
+      operationId: createFolder
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                folderName:
+                  type: string
+                  description: Name of the Folder
+                parentId:
+                  type: string
+                  description: ID of the parent Folder
+      responses:
+        '200':
+          description: Successful operation
+        '500':
+          description: Internal server error
+  /cloud/move:
+    put:
+      tags:
+        - cloud
+      summary: Move a File inside the Cloud
+      operationId: moveFile
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                fileId:
+                  type: string
+                  description: ID of the moved File
+                destinationId:
+                  type: string
+                  description: ID of the Folder where the File is moved
+      responses:
+        '200':
+          description: Successful operation
+        '500':
+          description: Internal server error
+  /cloud/rename:
+    put:
+      tags:
+        - cloud
+      summary: Rename a File in the Cloud
+      operationId: renameFile
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                fileId:
+                  type: string
+                  description: ID of the File
+                newName:
+                  type: string
+                  description: The new name of the File
+      responses:
+        '200':
+          description: Successful operation
+        '500':
+          description: Internal server error
+  /cloud/{fileId}:
+    delete:
+      tags:
+        - cloud
+      summary: Delete a File from the Cloud
+      operationId: deleteFile
+      parameters:
+        - name: fileId
+          in: path
+          description: ID of the File
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Successful operation
+        '500':
+          description: Internal server error
+  /cloud/{ownerId}/files/:
+    get:
+      tags:
+        - cloud
+      summary: Get all Files of User
+      operationId: getAllFiles
+      parameters:
+        - name: ownerId
+          in: path
+          description: ID of the owner User
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Successful operation
+        '500':
+          description: Internal server error
+  /cloud/owner/{ownerId}/files/{parentId}:
+    get:
+      tags:
+        - cloud
+      summary: Get all Files inside a Folder
+      operationId: getFilesInParent
+      parameters:
+        - name: ownerId
+          in: path
+          description: ID of the User
+          required: true
+          schema:
+            type: string
+        - name: parentId
+          in: path
+          description: ID of the 
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Successful operation
+        '404':
+          description: Files not found
+        '500':
+          description: Internal server error
+  /users:
+    post:
+      tags:
+        - user
+      summary: Creates a new User
+      operationId: createUser
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserData'
+      responses:
+        '201':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        '499':
+          description: User creation error
+        '500':
+          description: Internal server error
+  /users/{userId}:
+    get:
+      tags:
+        - user
+      summary: Gets a User by Id
+      operationId: getUser
+      parameters:
+        - name: userId
+          in: path
+          description: The Id of the User
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        '404':
+          description: User not found
+        '500':
+          description: Internal server error
+    put:
+      tags:
+        - user
+      summary: Update User information
+      oprationId: updateUser
+      parameters:
+        - name: userId
+          in: path
+          description: The Id of the User
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        '400':
+          description: Delete error
+        '500':
+          description: Internal server error
+    delete:
+      tags:
+        - user
+      summary: Delete a User 
+      oprationId: deleteUser
+      parameters:
+        - name: userId
+          in: path
+          description: The Id of the User
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Successful operation
+        '400':
+          description: Delete error
+        '500':
+          description: Internal server error
+  /user/register:
+    post:
+      tags:
+        - user
+      summary: Registers a new User in the Cloud
+      operationId: registerUser
+      requestBody:
+        content: 
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserData'
+      responses:
+        '201':
+          description: Successful operation
+        '409':
+          description: User already exists
+        '500':
+          description: Internal server error
+  /user/login:
+    post:
+      tags:
+        - user
+      summary: Login an already registered User
+      operationId: loginUser
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                email:
+                  type: string
+                  description: Email of the User
+                password:
+                  type: string
+                  description: Password of the User
+      responses:
+        '200':
+          description: Successful operation
+        '401':
+          description: Invalid email/password
+        '500':
+          description: Internal server error
+components:
+  schemas:
+    FileData:
+      type: object
+      properties:
+        owner_id:
+          type: string
+        parent_id:
+          type: string
+        filename:
+          type: string
+        is_folder:
+          type: boolean
+        size:
+          type: number
+    UserData:
+      type: object
+      properties:
+        username:
+          type: string
+        password:
+          type: string
+        email:
+          type: string
+    User:
+      type: object
+      properties:
+        id:
+          type: string
+        username:
+          type: string
+        password:
+          type: string
+        email:
+          type: string
+        created_at:
+          type: object
+          format: date
+    File:
+      type: object
+      properties:
+        id:
+          type: string
+        owner_id:
+          type: string
+        parent_id:
+          type: string
+        is_folder:
+          type: boolean
+        filename:
+          type: string
+        size:
+          type: number
+        uploaded_at:
+          type: object
+          format: Date
+        modified_at:
+          type: object
+          format: Date
