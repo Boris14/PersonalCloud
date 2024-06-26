@@ -21,6 +21,13 @@ const YourFilesTitle = styled.h2`
   margin-bottom: 1rem;
 `;
 
+const SearchInput = styled.input`
+  margin: 12px;
+  font-size: 1rem;
+  padding: 8px;
+  width: 300px;
+`;
+
 const FileList = styled.ul`
   list-style: none;
   padding: 0;
@@ -125,6 +132,7 @@ const YourFiles: React.FC = () => {
   const [renameFileId, setRenameFileId] = useState<string | null>(null);
   const [newFileName, setNewFileName] = useState<string>('');
   const [newFolderName, setNewFolderName] = useState<string>('');
+  const [searchQuery, setSearchQuery] = useState<string>('');
 
   useEffect(() => {
     fetchFiles();
@@ -177,7 +185,6 @@ const YourFiles: React.FC = () => {
       const link = document.createElement('a');
       link.href = url;
       const filenameMatch = response.headers['content-disposition'].match(/filename="(.+?)"/);
-      console.log(filenameMatch);
       link.setAttribute('download', filenameMatch[1]);
       document.body.appendChild(link);
       link.click();
@@ -252,9 +259,19 @@ const YourFiles: React.FC = () => {
     }
   };
 
+  const filteredFiles = files.filter(file =>
+    file.filename.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
   return (
     <YourFilesContainer>
       <YourFilesTitle>Your Files</YourFilesTitle>
+      <SearchInput
+        type="text"
+        placeholder="Search files..."
+        value={searchQuery}
+        onChange={(e) => setSearchQuery(e.target.value)}
+      />
       <UploadLabel htmlFor="fileUpload">Upload Files</UploadLabel>
       <UploadInput id="fileUpload" type="file" multiple onChange={handleUpload} />
       <Button onClick={handleDownloadAll}>Download All</Button>
@@ -267,7 +284,7 @@ const YourFiles: React.FC = () => {
         <Button onClick={handleCreateFolder}>Create Folder</Button>
       </div>
       <FileList>
-        {Array.isArray(files) && files.map((file) => (
+        {Array.isArray(filteredFiles) && filteredFiles.map((file) => (
           <FileItem key={file.id}>
             <FileIcon>
               <FontAwesomeIcon icon={getFileIcon(file)} />

@@ -3,7 +3,6 @@ import FileController from '../controllers/FileController.js';
 
 const router = express.Router();
 
-//router.post('/files', FileController.createFile);     Replaced by CloudController.uploadFiles
 router.get('/files/:fileId', FileController.getFileById);
 router.delete('/files/:fileId', FileController.deleteFile); 
 router.get('/files/owner/:ownerId', FileController.getFilesByOwner);
