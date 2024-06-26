@@ -1,14 +1,13 @@
 import React, { useState } from 'react';
 import { BrowserRouter as Router, Route, Routes, Navigate } from 'react-router-dom';
-import Navbar from './front-end/client/components/Navbar';
-import LoginForm, { LoginData } from './front-end/client/components/LoginForm';
-import Home from './front-end/client/components/Home';
-import Dashboard from './front-end/client/components/Dashboard';
-import YourFiles from './front-end/client/components/YourFiles';
-import SharedWithMe from './front-end/client/components/SharedWithMe';
-import RegistrationForm, { RegistrationData } from './front-end/client/components/RegistrationForm';
+import Navbar from './front-end/client/components/NavigationBar/Navbar';
+import LoginForm, { LoginData } from './front-end/client/components/Login/LoginForm';
+import Home from './front-end/client/components/Home/Home';
+import Dashboard from './front-end/client/components/Dashboard/Dashboard';
+import YourFiles from './front-end/client/components/YourFiles/YourFiles';
+import SharedWithMe from './front-end/client/components/SharedWithMe/SharedWithMe';
+import RegistrationForm from './front-end/client/components/Login/RegistrationForm';
 import UserData from './back-end/interfaces/UserData';
-
 
 const App: React.FC = () => {
   const [loggedIn, setLoggedIn] = useState(false);
@@ -39,7 +38,7 @@ const App: React.FC = () => {
     return false;
   };
 
-  const handleRegister = async (userData : UserData) => {
+  const handleRegister = async (userData: UserData) => {
     try {
       const response = await fetch('http://localhost:3000/api/users/register', {
         method: 'POST',
@@ -63,7 +62,6 @@ const App: React.FC = () => {
   };
 
   const logout = () => {
-    window.location.href = '/';
     setLoggedIn(false);
     setUserInfo(null);
   };
@@ -90,6 +88,6 @@ const App: React.FC = () => {
       </div>
     </Router>
   );
-}
+};
 
 export default App;
