@@ -70,7 +70,7 @@ class FileController {
             const newName = req.body.newName;
             const result = await FileService.renameFile(fileId, newName);
             if (result == null) {
-                res.status(404).json({ error: "Couldn't delete file"} );
+                res.status(404).json({ error: "Couldn't rename file"} );
             }
             else {
                 res.status(200).json({ message: "File renamed successfully" });
