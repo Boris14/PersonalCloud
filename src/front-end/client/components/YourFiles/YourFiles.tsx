@@ -3,7 +3,6 @@ import styled from 'styled-components';
 import axios from 'axios';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faFolder, faFileImage, faFilePdf, faFileWord, faFileExcel, faFileArchive, faFileAlt } from '@fortawesome/free-solid-svg-icons';
-import User from '../../../../back-end/models/User';
 
 const YourFilesContainer = styled.div`
   display: flex;
@@ -126,14 +125,14 @@ interface FileData {
   id: string;
   filename: string;
   is_folder: boolean;
-  size: number;
+  parentId?: string | null;
 }
 
 interface YourFilesProps {
   userId: string;
 }
 
-const YourFiles: React.FC<YourFilesProps> = ({userId}) => {
+const YourFiles: React.FC<YourFilesProps> = ({ userId }) => {
   const [files, setFiles] = useState<FileData[]>([]);
   const [renameFileId, setRenameFileId] = useState<string | null>(null);
   const [newFileName, setNewFileName] = useState<string>('');
@@ -141,10 +140,25 @@ const YourFiles: React.FC<YourFilesProps> = ({userId}) => {
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [parentId, setParentId] = useState<string | null>(null);
   const [pathStack, setPathStack] = useState<string[]>([]);
+  const [allFiles, setAllFiles] = useState<FileData[]>([]);
+  const [folderName, setFolderName] = useState<string>('Your Files');
 
   useEffect(() => {
-    fetchFiles();
-  }, [parentId]);
+    if (searchQuery) {
+      fetchAllFiles();
+    } else {
+      fetchFiles();
+    }
+  }, [parentId, searchQuery]);
+
+  const fetchAllFiles = async () => {
+    try {
+      const response = await axios.get(`/api/cloud/files`);
+      setAllFiles(response.data || []);
+    } catch (error) {
+      console.error('Error fetching all files:', error);
+    }
+  };
 
   const fetchFiles = async () => {
     try {
@@ -243,9 +257,10 @@ const YourFiles: React.FC<YourFilesProps> = ({userId}) => {
     }
   };
 
-  const handleFolderClick = (folderId: string) => {
+  const handleFolderClick = (folderId: string, folderName: string) => {
     setPathStack([...pathStack, parentId || '']);
     setParentId(folderId);
+    setFolderName(folderName);
   };
 
   const handleGoBack = () => {
@@ -282,13 +297,15 @@ const YourFiles: React.FC<YourFilesProps> = ({userId}) => {
     }
   };
 
-  const filteredFiles = files.filter(file =>
-    file.filename.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  const filteredFiles = searchQuery
+    ? allFiles.filter(file =>
+        file.filename.toLowerCase().includes(searchQuery.toLowerCase())
+      )
+    : files;
 
   return (
     <YourFilesContainer>
-      <YourFilesTitle>Your Files</YourFilesTitle>
+      <YourFilesTitle>{folderName}</YourFilesTitle>
       <SearchInput
         type="text"
         placeholder="Search files..."
@@ -310,7 +327,7 @@ const YourFiles: React.FC<YourFilesProps> = ({userId}) => {
       <FileList>
         {Array.isArray(filteredFiles) && filteredFiles.map((file) => (
           <FileItem key={file.id}>
-            <FileIcon onClick={() => file.is_folder && handleFolderClick(file.id)}>
+            <FileIcon onClick={() => file.is_folder && handleFolderClick(file.id, file.filename)}>
               <FontAwesomeIcon icon={getFileIcon(file)} />
             </FileIcon>
             {renameFileId === file.id ? (
@@ -324,7 +341,7 @@ const YourFiles: React.FC<YourFilesProps> = ({userId}) => {
               </>
             ) : (
               <>
-                <FileName onClick={() => file.is_folder && handleFolderClick(file.id)}>
+                <FileName onClick={() => file.is_folder && handleFolderClick(file.id, file.filename)}>
                   {file.filename || 'Unnamed'}
                 </FileName>
                 <FileActions>
@@ -343,4 +360,3 @@ const YourFiles: React.FC<YourFilesProps> = ({userId}) => {
 };
 
 export default YourFiles;
-
