@@ -91,10 +91,15 @@ class CloudService {
       };
 
       try {
-        await FileService.createFile(newFileData);
+        var fileEntry = await FileService.createFile(newFileData);
+        if (fileEntry == null)
+        {
+          // TODO: Handle error
+          return;
+        }
 
         const data: Buffer = await fs.promises.readFile(file.filepath);
-        const uploadPath = path.join(cloudDirpath, file.originalFilename);
+        const uploadPath = path.join(cloudDirpath, fileEntry.id);
         await fs.promises.writeFile(uploadPath, data);
       } catch (err) {
         console.error(err);
@@ -110,8 +115,8 @@ class CloudService {
     try {
       const file = await CloudService.getCloudFileById(fileId);
       if (file) {
-        let fileData: Buffer = await fs.promises.readFile(CloudService.getCloudFilepath(file.filename));
-        await fs.promises.writeFile(path.join(scriptDirpath, file.filename), fileData);
+        let fileData: Buffer = await fs.promises.readFile(CloudService.getCloudFilepath(file.id));
+        await fs.promises.writeFile(path.join(scriptDirpath, file.id), fileData);
       } else {
         console.error('Invalid File ID');
       }
@@ -138,11 +143,11 @@ class CloudService {
   }
 
   static async getCloudFileById(fileId: string): Promise<File | null> {
-    const filenames: string[] = fs.readdirSync(cloudDirpath);
-    for (const filename of filenames) {
+    const file_ids: string[] = fs.readdirSync(cloudDirpath);
+    for (const id of file_ids) {
       try {
         const file = await FileService.getFileById(fileId);
-        if (file && file.filename == filename) {
+        if (file && file.id == id) {
           return file;
         }
       } catch (err) {

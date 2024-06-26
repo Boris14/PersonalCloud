@@ -56,7 +56,7 @@ class CloudController {
         return;
       }
 
-      const fileData = await fs.promises.readFile(CloudService.getCloudFilepath(file.filename));
+      const fileData = await fs.promises.readFile(CloudService.getCloudFilepath(file.id));
 
       // Determine the correct Content-Type based on file extension
       let contentType = 'application/octet-stream'; // default content type for unknown types

@@ -176,7 +176,9 @@ const YourFiles: React.FC = () => {
       const url = window.URL.createObjectURL(new Blob([response.data]));
       const link = document.createElement('a');
       link.href = url;
-      link.setAttribute('download', 'file'); // you might want to set the filename dynamically
+      const filenameMatch = response.headers['content-disposition'].match(/filename="(.+?)"/);
+      console.log(filenameMatch);
+      link.setAttribute('download', filenameMatch[1]);
       document.body.appendChild(link);
       link.click();
     } catch (error) {
