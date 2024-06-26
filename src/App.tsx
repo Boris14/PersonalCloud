@@ -8,10 +8,11 @@ import YourFiles from './front-end/client/components/YourFiles/YourFiles';
 import SharedWithMe from './front-end/client/components/SharedWithMe/SharedWithMe';
 import RegistrationForm from './front-end/client/components/Login/RegistrationForm';
 import UserData from './back-end/interfaces/UserData';
+import User from './back-end/models/User';
 
 const App: React.FC = () => {
   const [loggedIn, setLoggedIn] = useState(false);
-  const [userData, setUserInfo] = useState<UserData | null>(null);
+  const [userData, setUserInfo] = useState<User | null>(null);
 
   const handleLogin = async (loginData: LoginData) => {
     try {
