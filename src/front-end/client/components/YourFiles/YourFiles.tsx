@@ -62,6 +62,7 @@ const FileName = styled.span`
   color: #555;
   word-break: break-word;
   margin-bottom: 0.5rem;
+  cursor: pointer;
 `;
 
 const FileActions = styled.div`
@@ -139,14 +140,14 @@ const YourFiles: React.FC<YourFilesProps> = ({userId}) => {
   const [newFolderName, setNewFolderName] = useState<string>('');
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [parentId, setParentId] = useState<string | null>(null);
+  const [pathStack, setPathStack] = useState<string[]>([]);
 
   useEffect(() => {
     fetchFiles();
-  }, []);
+  }, [parentId]);
 
   const fetchFiles = async () => {
     try {
-      console.log(userId);
       const response = await axios.get(`/api/cloud/owner/${userId}/files/${parentId}`);
       setFiles(response.data || []);
     } catch (error) {
@@ -159,6 +160,9 @@ const YourFiles: React.FC<YourFilesProps> = ({userId}) => {
     if (event.target.files) {
       for (const file of Array.from(event.target.files)) {
         formData.append('multipleFiles', file);
+      }
+      if (parentId) {
+        formData.append('parentId', parentId);
       }
       try {
         await axios.post('/api/cloud/upload', formData, {
@@ -192,7 +196,7 @@ const YourFiles: React.FC<YourFilesProps> = ({userId}) => {
       const link = document.createElement('a');
       link.href = url;
       const filenameMatch = response.headers['content-disposition'].match(/filename="(.+?)"/);
-      link.setAttribute('download', filenameMatch[1]);
+      link.setAttribute('download', filenameMatch ? filenameMatch[1] : 'downloaded_file');
       document.body.appendChild(link);
       link.click();
     } catch (error) {
@@ -231,12 +235,24 @@ const YourFiles: React.FC<YourFilesProps> = ({userId}) => {
 
   const handleCreateFolder = async () => {
     try {
-      await axios.post(`/api/cloud/folder`, { folderName: newFolderName, parentId: null });
+      await axios.post(`/api/cloud/folder`, { folderName: newFolderName, parentId: parentId });
       fetchFiles();
       setNewFolderName('');
     } catch (error) {
       console.error('Error creating folder:', error);
     }
+  };
+
+  const handleFolderClick = (folderId: string) => {
+    setPathStack([...pathStack, parentId || '']);
+    setParentId(folderId);
+  };
+
+  const handleGoBack = () => {
+    const newPathStack = [...pathStack];
+    const newCurrentFolderId = newPathStack.pop() || null;
+    setPathStack(newPathStack);
+    setParentId(newCurrentFolderId);
   };
 
   const getFileIcon = (file: FileData) => {
@@ -290,10 +306,11 @@ const YourFiles: React.FC<YourFilesProps> = ({userId}) => {
         />
         <Button onClick={handleCreateFolder}>Create Folder</Button>
       </div>
+      {parentId && <Button onClick={handleGoBack}>Go Back</Button>}
       <FileList>
         {Array.isArray(filteredFiles) && filteredFiles.map((file) => (
           <FileItem key={file.id}>
-            <FileIcon>
+            <FileIcon onClick={() => file.is_folder && handleFolderClick(file.id)}>
               <FontAwesomeIcon icon={getFileIcon(file)} />
             </FileIcon>
             {renameFileId === file.id ? (
@@ -307,12 +324,14 @@ const YourFiles: React.FC<YourFilesProps> = ({userId}) => {
               </>
             ) : (
               <>
-                <FileName>{file.filename}</FileName>
+                <FileName onClick={() => file.is_folder && handleFolderClick(file.id)}>
+                  {file.filename || 'Unnamed'}
+                </FileName>
                 <FileActions>
-                  <ActionButton onClick={() => handleDownloadFile(file.id)}>Download</ActionButton>
+                  {!file.is_folder && <ActionButton onClick={() => handleDownloadFile(file.id)}>Download</ActionButton>}
                   <ActionButton onClick={() => setRenameFileId(file.id)}>Rename</ActionButton>
                   <ActionButton onClick={() => handleDeleteFile(file.id)}>Delete</ActionButton>
-                  <ActionButton onClick={() => handleMoveFile(file.id, 'destination_folder_id')}>Move</ActionButton>
+                  {!file.is_folder && <ActionButton onClick={() => handleMoveFile(file.id, 'destination_folder_id')}>Move</ActionButton>}
                 </FileActions>
               </>
             )}
@@ -324,3 +343,4 @@ const YourFiles: React.FC<YourFilesProps> = ({userId}) => {
 };
 
 export default YourFiles;
+
