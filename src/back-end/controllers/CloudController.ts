@@ -29,7 +29,12 @@ class CloudController {
           return;
         }
 
-        const parentId = fields.parentId || null;
+        let parentId : string | null = null;
+        const parentIdArr = fields.parentId || null;
+        if(parentIdArr)
+        {
+          parentId = parentIdArr[0];
+        }
 
         if (files.multipleFiles) {
           await CloudService.uploadFiles(files.multipleFiles, parentId);
