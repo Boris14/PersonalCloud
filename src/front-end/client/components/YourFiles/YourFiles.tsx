@@ -3,6 +3,7 @@ import styled from 'styled-components';
 import axios from 'axios';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faFolder, faFileImage, faFilePdf, faFileWord, faFileExcel, faFileArchive, faFileAlt } from '@fortawesome/free-solid-svg-icons';
+import User from '../../../../back-end/models/User';
 
 const YourFilesContainer = styled.div`
   display: flex;
@@ -127,12 +128,17 @@ interface FileData {
   size: number;
 }
 
-const YourFiles: React.FC = () => {
+interface YourFilesProps {
+  userId: string;
+}
+
+const YourFiles: React.FC<YourFilesProps> = ({userId}) => {
   const [files, setFiles] = useState<FileData[]>([]);
   const [renameFileId, setRenameFileId] = useState<string | null>(null);
   const [newFileName, setNewFileName] = useState<string>('');
   const [newFolderName, setNewFolderName] = useState<string>('');
   const [searchQuery, setSearchQuery] = useState<string>('');
+  const [parentId, setParentId] = useState<string | null>(null);
 
   useEffect(() => {
     fetchFiles();
@@ -140,7 +146,8 @@ const YourFiles: React.FC = () => {
 
   const fetchFiles = async () => {
     try {
-      const response = await axios.get('/api/cloud/files');
+      console.log(userId);
+      const response = await axios.get(`/api/cloud/owner/${userId}/files/${parentId}`);
       setFiles(response.data || []);
     } catch (error) {
       console.error('Error fetching files:', error);

@@ -82,7 +82,7 @@ const App: React.FC = () => {
               <Navigate to="/login" />
             )}
           />
-          {loggedIn && <Route path="/your-files" element={<YourFiles />} />}
+          {loggedIn && <Route path="/your-files" element={<YourFiles userId={userData?.id ?? ''} />} />}
           {loggedIn && <Route path="/shared-with-me" element={<SharedWithMe />} />}
           <Route path="/register" element={loggedIn ? <Navigate to="/dashboard" /> : <RegistrationForm onRegister={handleRegister} />} />
         </Routes>

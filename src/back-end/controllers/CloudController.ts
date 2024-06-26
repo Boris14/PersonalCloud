@@ -147,7 +147,8 @@ class CloudController {
       try {
           const ownerId = req.params.ownerId;
           const parentId = req.params.parentId;
-          const files = await FileService.getFilesByOwnerIdAndParentId(ownerId, parentId);
+          const parentIdOrNull = (parentId == "null") ? null : parentId;
+          const files = await FileService.getFilesByOwnerIdAndParentId(ownerId, parentIdOrNull);
           if (files) {
               res.status(200).json(files);
           } else {
