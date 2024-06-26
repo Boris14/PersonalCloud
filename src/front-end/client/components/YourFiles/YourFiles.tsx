@@ -195,7 +195,7 @@ const YourFiles: React.FC = () => {
 
   const handleDeleteFile = async (fileId: string) => {
     try {
-      await axios.delete(`/api/files/${fileId}`);
+      await axios.delete(`/api/cloud/${fileId}`);
       fetchFiles();
     } catch (error) {
       console.error('Error deleting file:', error);

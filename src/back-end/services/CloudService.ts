@@ -161,20 +161,6 @@ class CloudService {
     return path.join(cloudDirpath, filename);
   }
 
-  static getPageHtml(): string {
-    const userText: string = UserController.currentUser ? `of ${UserController.currentUser.username}` : '';
-    return `
-        <h2>Personal Cloud ${userText}</h2>
-        <form action="/api/cloud/upload" enctype="multipart/form-data" method="post">
-          <div>Files to upload: <input id="uploadFiles" type="file" name="multipleFiles" multiple="multiple" /></div>
-          <input type="submit" value="Upload" />
-        </form>
-        <form action="/api/cloud/download" method="get">
-          <input type="submit" value="Download All" />
-        </form>
-        `;
-  }
-
   static async createFolder(folderName: string, parentId: string | null): Promise<void> {
     if (!UserController.currentUser) {
       throw new Error('Current user is undefined');
@@ -213,6 +199,14 @@ class CloudService {
 
   static async deleteFile(fileId: string): Promise<void> {
     try {
+      const file = await FileService.getFileById(fileId);
+      if(file && !file.is_folder) {
+        try {
+          await fs.promises.rm(CloudService.getCloudFilepath(fileId));
+        } catch(err) {
+          console.error("Couldn't remove file from Cloud. " + err);
+        } 
+      }
       await FileService.deleteFile(fileId);
     } catch (err) {
       console.error(err);

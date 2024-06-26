@@ -168,11 +168,6 @@ class CloudController {
       res.status(500).json({ error: 'Create Folder Error' });
     }
   }
-
-  static async defaultPage(req: Request, res: Response): Promise<void> {
-    CloudService.syncCloudAndDatabase();
-    res.end(CloudService.getPageHtml());
-  }
 }
 
 export default CloudController;
