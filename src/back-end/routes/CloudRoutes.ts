@@ -6,6 +6,11 @@ const router = express.Router();
 router.post('/cloud/upload', CloudController.uploadFiles);
 router.get('/cloud/download', CloudController.downloadAllFiles);
 router.get('/cloud/download/:fileId', CloudController.downloadFile);
+router.post('/cloud/folder', CloudController.createFolder);
+router.put('/cloud/move', CloudController.moveFile);
+router.put('/cloud/rename', CloudController.renameFile);
+router.delete('/cloud/:fileId', CloudController.deleteFile);
+router.get('/cloud/files', CloudController.getAllFiles); // Add this line
 router.get('*', CloudController.defaultPage);
 
 export default router;
