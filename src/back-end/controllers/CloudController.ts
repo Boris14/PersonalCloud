@@ -21,13 +21,12 @@ class CloudController{
         res.status(500).json({error: "Upload Files Error"});
         return;
       }
-      res.redirect('/');
+      res.redirect('/api');
       res.status(200);
     }
 
     static async downloadFile(req: Request, res: Response) : Promise<void> {
       try {
-        // Passed fileId isn't valid at the moment
         const fileId = req.params.fileId;
         await CloudService.downloadFile(fileId);
       } catch(err) {
@@ -35,7 +34,7 @@ class CloudController{
         res.status(500).json({error: "Download File Error"});
         return;
       }
-      res.redirect('/');
+      res.redirect('/api');
       res.status(200);
     }
 
@@ -47,11 +46,11 @@ class CloudController{
         res.status(400).json({error: "Download All Files Error"});
         return;
       }
-      res.redirect('/');
+      res.redirect('/api');
     }
 
     static async defaultPage(req: Request, res: Response) : Promise<void> {
-      CloudService.syncCloudFiles();
+      CloudService.syncCloudAndDatabase();
       res.end(CloudService.getPageHtml());
     }
 }
