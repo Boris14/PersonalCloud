@@ -94,7 +94,7 @@ class CloudService {
         var fileEntry = await FileService.createFile(newFileData);
         if (fileEntry == null)
         {
-          // TODO: Handle error
+          console.log("Couldn't create an entry for file in database");
           return;
         }
 

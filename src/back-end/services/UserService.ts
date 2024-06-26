@@ -83,7 +83,6 @@ class UserService {
 
             return newUser;
         } catch (error) {
-            console.log("some error");
             console.error('Error occured while trying to register', error);
             return null;
         }
