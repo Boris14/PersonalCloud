@@ -3,7 +3,6 @@ import User from '../models/User.js';
 import FileData from '../interfaces/FileData.js';
 
 class FileService {
-
     static async createFile(fileData: FileData): Promise<File | null> {
         try {
             const user = await User.findByPk(fileData.owner_id);
