@@ -11,6 +11,8 @@ router.put('/cloud/move', CloudController.moveFile);
 router.put('/cloud/rename', CloudController.renameFile);
 router.delete('/cloud/:fileId', CloudController.deleteFile);
 router.get('/cloud/files', CloudController.getAllFiles); // Add this line
+router.get('/cloud/owner/:ownerId/files/:parentId', CloudController.getFilesByParent);
 router.get('*', CloudController.defaultPage);
+
 
 export default router;

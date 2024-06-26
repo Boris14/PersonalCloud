@@ -142,7 +142,22 @@ class CloudController {
     }
 }
 
-
+  static async getFilesByParent(req: Request, res: Response)
+  {
+      try {
+          const ownerId = req.params.ownerId;
+          const parentId = req.params.parentId;
+          const files = await FileService.getFilesByOwnerIdAndParentId(ownerId, parentId);
+          if (files) {
+              res.status(200).json(files);
+          } else {
+              res.status(404).json({ error: "Files not found" });
+          }
+      } catch (error) {
+          console.error('Error getting files by owner and parent:', error);
+          res.status(500).json({ error: "Internal server error" });
+      }
+  }
   static async createFolder(req: Request, res: Response): Promise<void> {
     try {
       const { folderName, parentId } = req.body;
